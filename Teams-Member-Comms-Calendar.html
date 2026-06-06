@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Genius Network Member Communications Calendar</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Mulish:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F4F5F7; --card:#FFFFFF; --ink:#1B1D22; --soft:#6A6E76; --line:#E7E7EA; --wash:#F1F2F4;
+    --header:#101012; --headtext:#FFFFFF;
+    --gold:#E3A52A; --golddk:#9A6E12; --goldsoft:#FBEFD3; --goldline:#EAD09A;
+    --purple:#7A4FB0; --purplesoft:#F1E9FA; --purpleline:#D9C6EE;
+    --gray:#6A6E76; --red:#CF4040; --orange:#D9772B; --green:#3E9B53;
+  }
+  @media (prefers-color-scheme: dark){:root{
+    --bg:#101218; --card:#1A1D24; --ink:#ECEEF2; --soft:#9AA0AA; --line:#2A2E37; --wash:#15181E;
+    --header:#080A0D; --golddk:#E3A52A; --goldsoft:#2A2415; --goldline:#5A4A1E;
+    --purplesoft:#241A33; --purpleline:#4A3866;
+  }}
+  [data-theme="dark"]{
+    --bg:#101218; --card:#1A1D24; --ink:#ECEEF2; --soft:#9AA0AA; --line:#2A2E37; --wash:#15181E;
+    --header:#080A0D; --golddk:#E3A52A; --goldsoft:#2A2415; --goldline:#5A4A1E;
+    --purplesoft:#241A33; --purpleline:#4A3866;
+  }
+  [data-theme="light"]{
+    --bg:#F4F5F7; --card:#FFFFFF; --ink:#1B1D22; --soft:#6A6E76; --line:#E7E7EA; --wash:#F1F2F4;
+    --header:#101012; --golddk:#9A6E12; --goldsoft:#FBEFD3; --goldline:#EAD09A;
+    --purplesoft:#F1E9FA; --purpleline:#D9C6EE;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:'Mulish',sans-serif;font-size:15px;line-height:1.5;}
+
+  .top{background:var(--header);color:var(--headtext);}
+  .top .bar{max-width:980px;margin:0 auto;padding:14px 22px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;}
+  .logo{height:36px;width:auto;display:block;}
+  .brand{font-family:'Poppins';font-weight:300;font-size:23px;letter-spacing:.2em;text-transform:uppercase;line-height:1;align-items:center;gap:0;}
+  .brand b{font-weight:700;}
+  .brand sup{font-size:9px;letter-spacing:0;top:-.9em;}
+  .topright{display:flex;align-items:center;gap:16px;}
+  .calname{font-family:'Poppins';font-weight:600;font-size:16px;letter-spacing:.03em;text-align:right;}
+  .toggle{cursor:pointer;border:1px solid #555;background:transparent;color:var(--headtext);font-family:'Poppins';font-size:12px;font-weight:500;padding:7px 14px;border-radius:999px;white-space:nowrap;}
+  .goldrule{height:3px;background:var(--gold);}
+
+  .wrap{max-width:980px;margin:0 auto;padding:24px 22px 80px;}
+  h1{font-family:'Poppins';font-weight:700;font-size:30px;margin:4px 0 3px;}
+  .lede{color:var(--soft);font-size:14px;margin:0 0 18px;}
+
+  .defaults{display:flex;flex-wrap:wrap;gap:8px 22px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px 18px;margin-bottom:12px;font-size:13.5px;}
+  .defaults b{font-family:'Poppins';font-weight:600;}
+  .keybox{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px 18px;margin-bottom:12px;}
+  .keybox .klab{font-family:'Poppins';font-weight:700;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--soft);margin-bottom:9px;}
+  .krow{display:flex;flex-wrap:wrap;gap:9px 18px;align-items:center;font-size:12.5px;color:var(--soft);}
+  .twiglead{font-family:'Poppins';font-weight:700;color:var(--golddk);}
+  .ch{display:inline-block;font-family:'Poppins';font-size:10.5px;font-weight:700;padding:2px 10px;border-radius:999px;white-space:nowrap;}
+  .ch.email{background:var(--card);color:var(--ink);border:1.5px solid var(--ink);}
+  .ch.text{background:var(--ink);color:var(--card);}
+  .aud{font-family:'Poppins';font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap;}
+  .aud.mem{color:var(--purple);}
+  .aud.list{color:var(--gray);}
+  .dot{display:inline-block;width:10px;height:10px;border-radius:3px;vertical-align:-1px;margin-right:3px;}
+  .tznote{font-size:11.5px;color:var(--soft);margin:0 0 18px;font-style:italic;}
+
+  .nav{position:sticky;top:0;z-index:5;background:var(--bg);padding:12px 0;margin-bottom:10px;display:flex;flex-wrap:wrap;gap:8px;border-bottom:1px solid var(--line);align-items:center;}
+  .nav button{font-family:'Poppins';font-size:13px;font-weight:600;cursor:pointer;border:1.5px solid var(--line);background:var(--card);color:var(--ink);padding:8px 17px;border-radius:9px;}
+  .nav button:hover{border-color:var(--ink);}
+  .nav button.on{background:var(--ink);color:var(--card);border-color:var(--ink);}
+  .nav button.soon{border-style:dashed;color:var(--soft);}
+  #who{margin-left:auto;font-size:11.5px;color:var(--soft);font-family:'Poppins';font-weight:600;}
+  #who a{color:var(--purple);cursor:pointer;text-decoration:underline;margin-left:5px;}
+
+  .week{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin-bottom:16px;}
+  .week.quiet{background:var(--wash);}
+  .whead{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
+  .whead h2{font-family:'Poppins';font-weight:600;font-size:18px;margin:0;}
+  .range{color:var(--soft);font-size:12.5px;font-weight:500;}
+  .wstatus{font-family:'Poppins';font-size:11px;font-weight:600;padding:4px 12px;border-radius:999px;white-space:nowrap;}
+  .wstatus.now{background:var(--gold);color:#1A1400;}
+  .wstatus.meeting{background:var(--gold);color:#1A1400;}
+  .wstatus.draft{background:var(--wash);color:var(--soft);border:1px solid var(--line);}
+  .wstatus.quiet{background:transparent;color:var(--soft);border:1px dashed var(--line);}
+
+  .ev{display:flex;gap:13px;padding:9px 0;border-bottom:1px solid var(--line);align-items:flex-start;}
+  .ev:last-of-type{border-bottom:none;}
+  .chip{flex:0 0 58px;text-align:center;border-radius:9px;padding:6px 0;}
+  .chip .d{font-family:'Poppins';font-weight:700;font-size:17px;line-height:1.05;}
+  .chip .w{font-size:9px;letter-spacing:.06em;opacity:.92;text-transform:uppercase;}
+  .ev-main{flex:1;}
+  .ev-t{font-family:'Poppins';font-weight:600;font-size:15px;display:block;color:var(--ink);}
+  .ev-time{display:block;color:var(--golddk);font-weight:700;font-size:12.5px;margin-top:2px;}
+  .ev-note{display:block;color:var(--soft);font-size:12.5px;margin-top:2px;}
+  .ev-link a{color:var(--purple);font-size:12px;font-weight:600;text-decoration:none;}
+  .ev-link a:hover{text-decoration:underline;}
+
+  .twig{display:flex;gap:12px;background:var(--goldsoft);border:1px solid var(--goldline);border-left:4px solid var(--gold);border-radius:10px;padding:11px 14px;margin:13px 0;}
+  .twig .lab{font-family:'Poppins';font-weight:700;color:var(--golddk);font-size:12px;margin-bottom:2px;}
+  .twig .body{font-size:14px;}
+
+  .ybox{display:flex;gap:12px;background:var(--purplesoft);border:1px solid var(--purpleline);border-left:4px solid var(--purple);border-radius:10px;padding:11px 14px;margin:11px 0 2px;}
+  .ybox .lab{font-family:'Poppins';font-weight:700;font-size:11.5px;letter-spacing:.05em;color:var(--purple);margin-bottom:2px;}
+  .ybox .body{font-size:13.5px;color:var(--ink);}
+
+  .sendwrap{background:var(--wash);border:1px solid var(--line);border-radius:11px;padding:6px 14px 12px;margin-top:14px;}
+  .sub{font-family:'Poppins';font-weight:700;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink);margin:10px 0 4px;}
+  .sends{list-style:none;margin:0;padding:0;}
+  .sends li{padding:11px 0;border-top:1px solid var(--line);}
+  .sends li:first-child{border-top:none;}
+  .sline{display:flex;gap:11px;align-items:flex-start;}
+  .sday{flex:0 0 96px;font-family:'Poppins';font-weight:700;font-size:12.5px;color:var(--ink);}
+  .sdesc{flex:1;font-size:14px;}
+  .sdesc a{color:var(--purple);font-weight:600;font-size:12.5px;text-decoration:none;}
+  .sdesc a:hover{text-decoration:underline;}
+  .smeta{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0 0 107px;}
+  .chtime{font-size:10.5px;color:var(--soft);font-weight:700;}
+  select.stat{font-family:'Poppins';font-size:10.5px;font-weight:700;border-radius:999px;border:none;padding:4px 11px;cursor:pointer;color:#fff;-webkit-appearance:none;appearance:none;letter-spacing:.02em;}
+  .st-nw{background:var(--gray);} .st-oa{background:var(--red);} .st-ap{background:var(--orange);} .st-sc{background:var(--green);}
+  .by{font-size:10px;color:var(--soft);font-style:italic;}
+
+  .prep{margin-top:12px;font-size:13px;color:#2F6FB0;background:rgba(47,111,176,.10);border-radius:9px;padding:9px 13px;}
+  .prep b{font-family:'Poppins';font-weight:600;}
+  .flag{margin-top:10px;font-size:13px;color:var(--soft);font-style:italic;}
+  .none{color:var(--soft);font-size:13.5px;font-style:italic;padding:8px 0;}
+  .soonpanel{background:var(--card);border:1px dashed var(--line);border-radius:14px;padding:40px 24px;text-align:center;}
+  .soonpanel h2{font-family:'Poppins';font-size:22px;margin:0 0 8px;}
+  .soonpanel p{color:var(--soft);margin:4px 0;}
+  footer{margin-top:26px;color:var(--soft);font-size:12.5px;text-align:center;}
+
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:50;padding:20px;}
+  .overlay.show{display:flex;}
+  .modal{background:var(--card);color:var(--ink);border-radius:14px;max-width:380px;width:100%;padding:22px;box-shadow:0 20px 60px rgba(0,0,0,.3);}
+  .modal h3{font-family:'Poppins';font-size:17px;margin:0 0 6px;}
+  .modal p{font-size:13.5px;color:var(--soft);margin:0 0 14px;}
+  .modal input{width:100%;padding:10px 12px;border:1.5px solid var(--line);border-radius:9px;font-size:14px;background:var(--bg);color:var(--ink);margin-bottom:6px;}
+  .merr{color:var(--red);font-size:12.5px;min-height:16px;margin-bottom:8px;}
+  .mbtns{display:flex;gap:10px;justify-content:flex-end;}
+  .mbtns button{font-family:'Poppins';font-weight:600;font-size:13px;border-radius:9px;padding:9px 16px;cursor:pointer;border:1.5px solid var(--line);background:var(--card);color:var(--ink);}
+  .mbtns .save{background:var(--ink);color:var(--card);border-color:var(--ink);}
+</style>
+</head>
+<body>
+<div class="top">
+  <div class="bar">
+    <a href="https://geniusnetwork.com" target="_blank"><img class="logo" src="https://geniusnetwork.com/wp-content/uploads/2022/09/Genius-Network-Logo-White-on-Transparent-140-px-wide.png" alt="Genius Network" onerror="this.style.display='none';document.getElementById('wordmark').style.display='inline-flex'"></a>
+    <span class="brand" id="wordmark" style="display:none">Genius<b> Network</b><sup>&reg;</sup></span>
+    <div class="topright">
+      <span class="calname">Member Communications Calendar</span>
+      <button class="toggle" id="toggle">Background</button>
+    </div>
+  </div>
+</div>
+<div class="goldrule"></div>
+<div class="wrap">
+  <h1>2026 &ndash; 2027</h1>
+  <p class="lede">Pick a month, then read each week top to bottom.</p>
+
+  <div class="defaults">
+    <span><b>Writer:</b> Gina</span>
+    <span><b>Approvals:</b> Denise + Eunice</span>
+    <span><b>Goal:</b> everything drafted before August 1</span>
+  </div>
+
+  <div class="keybox">
+    <div class="klab">Key</div>
+    <div class="krow">
+      <span><span class="twiglead">TWIG</span> &middot; This Week In Genius, the weekly communications</span>
+      <span><span class="ch email">Email</span> <span class="ch text">Text</span></span>
+      <span><span class="dot" style="background:var(--purple)"></span><span class="aud mem">Members</span></span>
+      <span><span class="dot" style="background:var(--gray)"></span><span class="aud list">17K list</span></span>
+      <span style="width:100%"></span>
+      <span style="font-family:'Poppins';font-weight:700;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--soft)">Status</span>
+      <span><span class="dot" style="background:var(--gray)"></span>Not written</span>
+      <span><span class="dot" style="background:var(--red)"></span>Out for approval</span>
+      <span><span class="dot" style="background:var(--orange)"></span>Approved / Move to Keep</span>
+      <span><span class="dot" style="background:var(--green)"></span>Scheduled &check;</span>
+    </div>
+  </div>
+  <p class="tznote">Arizona stays on Mountain time all year, so it reads the same as Pacific through the summer. After November 1, when the rest of the country leaves Daylight Time, all three are shown: PT, AZ, ET. The page also follows your device for dark or light, and the Background button overrides it.</p>
+
+  <nav class="nav" id="nav"></nav>
+  <div id="weeks"></div>
+  <footer>Genius Network Member Communications Calendar &middot; Internal team view. Changing a status asks for your password once per visit.</footer>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <h3>Save this change?</h3>
+    <p id="mMsg"></p>
+    <input type="password" id="mPw" placeholder="Your password" autocomplete="off">
+    <div class="merr" id="mErr"></div>
+    <div class="mbtns">
+      <button id="mCancel">Cancel</button>
+      <button class="save" id="mSave">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// --- passwords (soft gate, editable). Change these strings any time. ---
+const PW={Gina:'gina2026', Eunice:'eunice2026', Denise:'denise2026'};
+
+const ILML='https://ILoveMarketingLIVE.com';        // public pitch page for the 17K list
+const GNML='https://GeniusNetwork.com/MarketingLive'; // member + registrant access page (secure)
+const OH='http://GeniusOfficeHours.com';             // old GoDaddy redirect, must stay non-secure
+// date-chip color by event type
+const CAT={ilm:'#C0392B',tx:'#C0392B',oh:'#3B73B9',gm:'#3B73B9',mtg:'#E3A52A',k100:'#C0392B',ann:'#8E3B4E',yr:'#5A6B8C'};
+const GOLDCHIP=['mtg']; // chips that need dark text
+const E=(t)=>({c:'email',l:'Email',t:t||'6:00 AM'});
+const T=(t)=>({c:'text',l:'Text',t:t||''});
+
+const W=[
+ {m:'Jun',label:'Week of June 8',range:'Jun 8 - 14',ws:['Building now','now'],twigDay:'Mon Jun 8',twigSt:'nw',
+  events:[
+    {d:'10',w:'Wed',cat:'ilm',t:'I Love Marketing Live',time:'10:00 AM PT/AZ · 1:00 PM ET',link:GNML},
+    {d:'11',w:'Thu',cat:'oh',t:'Genius Office Hours: AI Skills for Members and Their Teams (with Peter Cobabe)',time:'9:00 AM PT/AZ · 12:00 PM ET',link:OH,note:'Topic: AI skills you and your Team can use the same day, prompting, workflows, content, SOPs, and live Q&A with Peter Cobabe.'}
+  ],
+  twig:'I Love Marketing Live Wednesday, Genius Office Hours Thursday.',
+  preSends:[
+    {day:'Sat Jun 6',desc:'Pitch 1 for I Love Marketing.',ch:[E()],aud:'17K list',at:'list',link:ILML,st:'oa'}
+  ],
+  sends:[
+    {day:'Tue Jun 9',desc:'Pitch 2 for I Love Marketing. Drop this if Pitch 1 already pulled enough.',ch:[E()],aud:'17K list',at:'list',link:ILML,st:'nw'},
+    {day:'Wed Jun 10',desc:'Day-of reminder. Email and text.',ch:[E('6:00 AM'),T('7:30 AM')],aud:'Members + registrants',at:'mem',link:GNML,st:'nw'},
+    {day:'Wed Jun 10',desc:'Day-of pitch.',ch:[E('6:00 AM')],aud:'17K list',at:'list',link:GNML,st:'nw'},
+    {day:'Thu Jun 11',desc:'Genius Office Hours morning-of reminder.',ch:[E('6:00 AM'),T('7:30 AM')],aud:'Members + Teams',at:'mem',link:OH,st:'nw'}
+  ],
+  flag:'The Saturday pitch is pending Eunice\u2019s approval. Once approved, she flips it to Approved / Move to Keep, then Gina schedules it in Keap and flips it to Scheduled.'},
+
+ {m:'Jun',label:'Week of June 15',range:'Jun 15 - 21',ws:['Build week','draft'],twigDay:'Mon Jun 15',
+  events:[],
+  twig:'The Genius Network Meeting is next week. Agenda, directories, who to connect with, what to prep.',
+  sends:[{day:'Thu Jun 18',desc:'Week-before heads-up: agenda, directory, logistics, RSVP.',ch:[E('6:00 AM')],aud:'Members',at:'mem',link:'',st:'nw'}],
+  prep:'Build and test the Meeting reminder stack this week, the Keap emails plus the texts. Draft by June 12.',
+  flag:'No events of its own. This is your runway into the Meeting. The heads-up goes on the Thursday before.'},
+
+ {m:'Jun',label:'Week of June 22',range:'Jun 22 - 28',ws:['Meeting week','meeting'],twigDay:'Mon Jun 22',
+  events:[{d:'25',d2:'26',w:'Thu',w2:'Fri',cat:'mtg',t:'Genius Network Meeting',time:'9:00 AM PT/AZ start · Jun 25-26'}],
+  youth:'Genius Youth June Meeting, Sat & Sun (Jun 27-28), 9:00 AM to 5:00 PM PT/AZ, Tempe headquarters.',
+  twig:'It is Meeting week. Final logistics. Members go into the reminder sequence today.',
+  sends:[
+    {day:'Wed Jun 24',desc:'Day before 💌 (text references the email).',ch:[E('12:00 PM'),T('12:30 PM')],aud:'Members',at:'mem',link:'',st:'nw'},
+    {day:'Thu Jun 25',desc:'Day 1 ☀️ (ends with the Zoom link).',ch:[E('6:00 AM'),T('6:00 AM')],aud:'Members',at:'mem',link:'',st:'nw'},
+    {day:'Fri Jun 26',desc:'Day 2 🙂 (ends with the Zoom link).',ch:[E('6:00 AM'),T('6:00 AM')],aud:'Members',at:'mem',link:'',st:'nw'}
+  ],
+  flag:'On Meeting days the email and the text both send at 6:00 AM, because breakfast is at 8:15.'},
+
+ {m:'Jul',label:'Week of June 29',range:'Jun 29 - Jul 5',ws:['Draft by Jun 19','draft'],twigDay:'Mon Jun 29',
+  events:[{d:'2',w:'Thu',cat:'gm',t:'Genius Morning & New Member Connection Session',time:'9:00 AM PT/AZ · 12:00 PM ET'}],
+  twig:'Genius Morning Thursday, plus a Fourth of July note.',
+  sends:[
+    {day:'Mon Jun 29',desc:'Genius Network Meeting wrap-up: highlights, key takeaways, replays.',ch:[E('6:00 AM')],aud:'Members',at:'mem',link:'',st:'nw'},
+    {day:'Wed Jul 1',desc:'Genius Morning day-before.',ch:[E('6:00 AM')],aud:'Members',at:'mem',link:'',st:'nw'},
+    {day:'Thu Jul 2',desc:'Genius Morning morning-of.',ch:[E('6:00 AM'),T('7:30 AM')],aud:'Members',at:'mem',link:'',st:'nw'},
+    {day:'Fri Jul 3',desc:'Fourth of July touch, and a tease for Monday\u2019s 10XTalk LIVE.',ch:[E('6:00 AM')],aud:'Members',at:'mem',link:'',st:'nw'}
+  ],
+  flag:'July 4 is a Saturday, so the holiday touch lands Friday Jul 3.'},
+
+ {m:'Jul',label:'Week of July 6',range:'Jul 6 - 12',ws:['Draft by Jun 19','draft'],twigDay:'Mon Jul 6',
+  events:[
+    {d:'6',w:'Mon',cat:'tx',t:'10XTalk LIVE Podcast (Joe Polish & Dan Sullivan)',time:'12:00 PM PT/AZ · 3:00 PM ET'},
+    {d:'8',w:'Wed',cat:'ilm',t:'I Love Marketing Live',time:'10:00 AM PT/AZ · 1:00 PM ET',link:GNML}
+  ],
+  twig:'10XTalk LIVE today at noon, I Love Marketing Live Wednesday. The Monday TWIG doubles as the 10XTalk reminder.',
+  sends:[
+    {day:'Tue Jul 7',desc:'I Love Marketing day-before.',ch:[E('6:00 AM')],aud:'Members',at:'mem',link:GNML,st:'nw'},
+    {day:'Wed Jul 8',desc:'I Love Marketing morning-of.',ch:[E('6:00 AM'),T('8:30 AM')],aud:'Members',at:'mem',link:GNML,st:'nw'}
+  ],
+  flag:'I Love Marketing also gets the 17K list pitch lane (pitches link to ILoveMarketingLIVE.com), same pattern as the June 8 week.'},
+
+ {m:'Aug',label:'Week of August 3',range:'Aug 3 - 9',ws:['Draft by Jun 30','draft'],twigDay:'Mon Aug 3',
+  events:[{d:'6',w:'Thu',cat:'gm',t:'Genius Morning & New Member Connection Session',time:'9:00 AM PT/AZ · 12:00 PM ET'}],
+  twig:'Genius Morning Thursday.',
+  sends:[
+    {day:'Wed Aug 5',desc:'Genius Morning day-before.',ch:[E('6:00 AM')],aud:'Members',at:'mem',link:'',st:'nw'},
+    {day:'Thu Aug 6',desc:'Genius Morning morning-of.',ch:[E('6:00 AM'),T('7:30 AM')],aud:'Members',at:'mem',link:'',st:'nw'}
+  ]},
+
+ {m:'Aug',label:'Week of August 10',range:'Aug 10 - 16',ws:['Draft by Jun 30','draft'],twigDay:'Mon Aug 10',
+  events:[
+    {d:'12',w:'Wed',cat:'ilm',t:'I Love Marketing Live',time:'10:00 AM PT/AZ · 1:00 PM ET',link:GNML},
+    {d:'13',w:'Thu',cat:'oh',t:'Genius Office Hours for Teams',time:'9:00 AM PT/AZ · 12:00 PM ET',link:OH}
+  ],
+  twig:'I Love Marketing Live Wednesday, Genius Office Hours for Teams Thursday.',
+  sends:[
+    {day:'Tue Aug 11',desc:'I Love Marketing day-before.',ch:[E('6:00 AM')],aud:'Members',at:'mem',link:GNML,st:'nw'},
+    {day:'Wed Aug 12',desc:'I Love Marketing morning-of, plus Office Hours day-before.',ch:[E('6:00 AM'),T('8:30 AM')],aud:'Members',at:'mem',link:GNML,st:'nw'},
+    {day:'Thu Aug 13',desc:'Genius Office Hours morning-of.',ch:[E('6:00 AM'),T('7:30 AM')],aud:'Members + Teams',at:'mem',link:OH,st:'nw'}
+  ],
+  flag:'I Love Marketing also gets its 17K list pitch lane.'},
+
+ {m:'Aug',label:'Week of August 17',range:'Aug 17 - 23',ws:['Quiet week','quiet'],twigDay:'Mon Aug 17',
+  events:[],
+  twig:'Light week. A value piece or Member spotlight.',
+  sends:[],
+  flag:'No events. Use this week to write September ahead. September is the busiest month of the year.'},
+
+ {m:'Aug',label:'Week of August 24',range:'Aug 24 - 30',ws:['Quiet week','quiet'],twigDay:'Mon Aug 24',
+  events:[],
+  twig:'Light week. A value piece or Member spotlight.',
+  sends:[],
+  flag:'No events. Keep writing September and the Annual Event.'},
+
+ {m:'Sep',label:'Week of August 31',range:'Aug 31 - Sep 6',ws:['Draft by Jul 10','draft'],twigDay:'Mon Aug 31',
+  events:[{d:'3',w:'Thu',cat:'gm',t:'Genius Morning & New Member Connection Session',time:'9:00 AM PT/AZ · 12:00 PM ET'}],
+  twig:'Genius Morning Thursday.',
+  sends:[
+    {day:'Wed Sep 2',desc:'Genius Morning day-before.',ch:[E('6:00 AM')],aud:'Members',at:'mem',link:'',st:'nw'},
+    {day:'Thu Sep 3',desc:'Genius Morning morning-of.',ch:[E('6:00 AM'),T('7:30 AM')],aud:'Members',at:'mem',link:'',st:'nw'},
+    {day:'Fri Sep 4',desc:'Pre-holiday reminder for next week\u2019s sessions, before the long weekend.',ch:[E('6:00 AM')],aud:'Members',at:'mem',link:'',st:'nw'}
+  ],
+  flag:'The Friday reminder goes out before Labor Day so Members have it in hand.'},
+
+ {m:'Sep',label:'Week of September 7',range:'Sep 7 - 13',ws:['Draft by Jul 10','draft'],twigDay:'Mon Sep 7',
+  events:[
+    {d:'9',w:'Wed',cat:'ilm',t:'I Love Marketing Live',time:'10:00 AM PT/AZ · 1:00 PM ET',link:GNML},
+    {d:'10',w:'Thu',cat:'oh',t:'Genius Office Hours: AI Skills (with Peter Cobabe)',time:'9:00 AM PT/AZ · 12:00 PM ET',link:OH,note:'Topic: to confirm with Peter Cobabe.'},
+    {d:'11',w:'Fri',cat:'tx',t:'10XTalk LIVE Podcast (Joe Polish & Dan Sullivan)',time:'10:45 AM PT/AZ · 1:45 PM ET'}
+  ],
+  twig:'Labor Day. Three sessions this week, and the Genius Network Meeting is next week.',
+  sends:[
+    {day:'Tue Sep 8',desc:'I Love Marketing day-before.',ch:[E('6:00 AM')],aud:'Members',at:'mem',link:GNML,st:'nw'},
+    {day:'Tue Sep 8',desc:'Annual Event buyer onboarding: set up your profile (about 60 days out).',ch:[E('6:00 AM')],aud:'Annual buyers',at:'list',link:'',st:'nw'},
+    {day:'Wed Sep 9',desc:'I Love Marketing morning-of, plus Office Hours day-before.',ch:[E('6:00 AM'),T('8:30 AM')],aud:'Members',at:'mem',link:GNML,st:'nw'},
+    {day:'Thu Sep 10',desc:'Office Hours morning-of, plus 10XTalk day-before.',ch:[E('6:00 AM'),T('7:30 AM')],aud:'Members + Teams',at:'mem',link:OH,st:'nw'},
+    {day:'Thu Sep 10',desc:'Genius Network Meeting week-before heads-up.',ch:[E('6:00 AM')],aud:'Members',at:'mem',link:'',st:'nw'},
+    {day:'Fri Sep 11',desc:'10XTalk day-of.',ch:[E('6:00 AM')],aud:'Members',at:'mem',link:'',st:'nw'}
+  ],
+  prep:'Build and test both the Genius Network Meeting and 100K Group Meeting reminder stacks. They land the next two weeks.',
+  flag:'Crowded week: three sessions, plus Meeting build-up, plus buyer onboarding begins.'},
+
+ {m:'Sep',label:'Week of September 14',range:'Sep 14 - 20',ws:['Meeting week','meeting'],twigDay:'Mon Sep 14',
+  events:[{d:'17',d2:'18',w:'Thu',w2:'Fri',cat:'mtg',t:'Genius Network Meeting',time:'9:00 AM PT/AZ start · Sep 17-18'}],
+  youth:'Genius Youth September Meeting, Sat & Sun (Sep 19-20), 9:00 AM to 5:00 PM PT/AZ, Tempe headquarters.',
+  twig:'It is Genius Network Meeting week. Members go into the sequence today. The 100K Group Meeting is the following week.',
+  sends:[
+    {day:'Wed Sep 16',desc:'Day before 💌.',ch:[E('12:00 PM'),T('12:30 PM')],aud:'Members',at:'mem',link:'',st:'nw'},
+    {day:'Thu Sep 17',desc:'Day 1 ☀️.',ch:[E('6:00 AM'),T('6:00 AM')],aud:'Members',at:'mem',link:'',st:'nw'},
+    {day:'Fri Sep 18',desc:'Day 2 🙂.',ch:[E('6:00 AM'),T('6:00 AM')],aud:'Members',at:'mem',link:'',st:'nw'}
+  ]},
+
+ {m:'Sep',label:'Week of September 21',range:'Sep 21 - 27',ws:['Meeting week','meeting'],twigDay:'Mon Sep 21',
+  events:[{d:'24',d2:'25',w:'Thu',w2:'Fri',cat:'k100',t:'100K Group Meeting',time:'9:00 AM PT/AZ start · Sep 24-25'}],
+  twig:'It is 100K Group Meeting week. 100K Members go into the sequence today.',
+  sends:[
+    {day:'Mon Sep 21',desc:'Genius Network Meeting wrap-up (from last week\u2019s Meeting).',ch:[E('6:00 AM')],aud:'Members',at:'mem',link:'',st:'nw'},
+    {day:'Wed Sep 23',desc:'Day before 💌.',ch:[E('12:00 PM'),T('12:30 PM')],aud:'100K Members',at:'mem',link:'',st:'nw'},
+    {day:'Thu Sep 24',desc:'Day 1 ☀️.',ch:[E('6:00 AM'),T('6:00 AM')],aud:'100K Members',at:'mem',link:'',st:'nw'},
+    {day:'Fri Sep 25',desc:'Day 2 🙂.',ch:[E('6:00 AM'),T('6:00 AM')],aud:'100K Members',at:'mem',link:'',st:'nw'}
+  ]},
+
+ {m:'Oct',label:'Week of September 28',range:'Sep 28 - Oct 4',ws:['Draft by Jul 17','draft'],twigDay:'Mon Sep 28',
+  events:[{d:'1',w:'Thu',cat:'gm',t:'Genius Morning & New Member Connection Session',time:'9:00 AM PT/AZ · 12:00 PM ET'}],
+  twig:'Genius Morning Thursday. The Genius Network Meeting is next week.',
+  sends:[
+    {day:'Mon Sep 28',desc:'100K Group Meeting wrap-up: highlights, replays.',ch:[E('6:00 AM')],aud:'100K Members',at:'mem',link:'',st:'nw'},
+    {day:'Tue Sep 29',desc:'Annual Event Launchpad bonus: site login, intro card, bio, headshot, Launchpad videos (about 30 days out).',ch:[E('6:00 AM')],aud:'Annual buyers',at:'list',link:'',st:'nw'},
+    {day:'Wed Sep 30',desc:'Genius Morning day-before.',ch:[E('6:00 AM')],aud:'Members',at:'mem',link:'',st:'nw'},
+    {day:'Thu Oct 1',desc:'Genius Network Meeting week-before heads-up.',ch:[E('6:00 AM')],aud:'Members',at:'mem',link:'',st:'nw'},
+    {day:'Thu Oct 1',desc:'Genius Morning morning-of.',ch:[E('6:00 AM'),T('7:30 AM')],aud:'Members',at:'mem',link:'',st:'nw'}
+  ]},
+
+ {m:'Oct',label:'Week of October 5',range:'Oct 5 - 11',ws:['Meeting week','meeting'],twigDay:'Mon Oct 5',
+  events:[{d:'8',d2:'9',w:'Thu',w2:'Fri',cat:'mtg',t:'Genius Network Meeting',time:'9:00 AM PT/AZ start · Oct 8-9'}],
+  youth:'Genius Youth Speaker Series, Wed (Oct 7), 5:00 PM PT/AZ · 8:00 PM ET.',
+  twig:'It is Meeting week. Members go into the sequence today.',
+  sends:[
+    {day:'Wed Oct 7',desc:'Day before 💌.',ch:[E('12:00 PM'),T('12:30 PM')],aud:'Members',at:'mem',link:'',st:'nw'},
+    {day:'Thu Oct 8',desc:'Day 1 ☀️.',ch:[E('6:00 AM'),T('6:00 AM')],aud:'Members',at:'mem',link:'',st:'nw'},
+    {day:'Fri Oct 9',desc:'Day 2 🙂.',ch:[E('6:00 AM'),T('6:00 AM')],aud:'Members',at:'mem',link:'',st:'nw'}
+  ]},
+
+ {m:'Oct',label:'Week of October 12',range:'Oct 12 - 18',ws:['Draft by Jul 17','draft'],twigDay:'Mon Oct 12',
+  events:[
+    {d:'14',w:'Wed',cat:'ilm',t:'I Love Marketing Live (final of the year)',time:'10:00 AM PT/AZ · 1:00 PM ET',link:GNML},
+    {d:'16',w:'Fri',cat:'tx',t:'10XTalk LIVE Podcast (Joe Polish & Dan Sullivan)',time:'10:45 AM PT/AZ · 1:45 PM ET'}
+  ],
+  twig:'I Love Marketing Live Wednesday, the last one of the year, and 10XTalk LIVE Friday.',
+  sends:[
+    {day:'Mon Oct 12',desc:'Genius Network Meeting wrap-up (from last week\u2019s Meeting).',ch:[E('6:00 AM')],aud:'Members',at:'mem',link:'',st:'nw'},
+    {day:'Tue Oct 13',desc:'I Love Marketing day-before.',ch:[E('6:00 AM')],aud:'Members',at:'mem',link:GNML,st:'nw'},
+    {day:'Wed Oct 14',desc:'I Love Marketing morning-of.',ch:[E('6:00 AM'),T('8:30 AM')],aud:'Members',at:'mem',link:GNML,st:'nw'},
+    {day:'Thu Oct 15',desc:'10XTalk day-before.',ch:[E('6:00 AM')],aud:'Members',at:'mem',link:'',st:'nw'},
+    {day:'Fri Oct 16',desc:'10XTalk day-of.',ch:[E('6:00 AM')],aud:'Members',at:'mem',link:'',st:'nw'}
+  ],
+  flag:'Final I Love Marketing Live of 2026. Lean into last of the year. It also gets its 17K list pitch lane.'},
+
+ {m:'Oct',label:'Week of October 19',range:'Oct 19 - 25',ws:['Quiet week','quiet'],twigDay:'Mon Oct 19',
+  events:[],
+  twig:'Light week. Start the Annual Event build-up.',
+  sends:[],
+  flag:'No events. The Annual Event runway starts next week.'},
+
+ {m:'Nov',label:'Week of October 26, Annual Event runway',range:'Oct 26 - Nov 1',ws:['Draft by Jul 24','draft'],twigDay:'Mon Oct 26',
+  events:[{d:'5',d2:'7',w:'Thu',w2:'Sat',cat:'ann',t:'Genius Network Annual Event is next week',time:'Nov 5-7 · JW Marriott Scottsdale'}],
+  twig:'The Genius Network Annual Event is next week. Travel, hotel room block, agenda.',
+  sends:[
+    {day:'Tue Oct 27',desc:'Runway heads-up: travel, hotel room block, agenda.',ch:[E('6:00 AM')],aud:'Attendees',at:'mem',link:'',st:'nw'},
+    {day:'Thu Oct 29',desc:'Week-before heads-up: what to bring, full schedule, parking.',ch:[E('6:00 AM')],aud:'Attendees',at:'mem',link:'',st:'nw'}
+  ],
+  prep:'Full Annual Event stack built and tested, room block link live, by Oct 22.',
+  flag:'Off-site at the JW Marriott Scottsdale, not the Tempe headquarters. Every touch leads with location and the room block.'},
+
+ {m:'Nov',label:'Week of November 2, Annual Event',range:'Nov 2 - 8',ws:['Event week','meeting'],twigDay:'Mon Nov 2',
+  events:[{d:'5',d2:'7',w:'Thu',w2:'Sat',cat:'ann',t:'Genius Network Annual Event',time:'9:00 AM AZ · 8:00 AM PT · 11:00 AM ET'}],
+  youth:'Genius Youth families also attend the Annual Event this week.',
+  twig:'It is Annual Event week. Attendees go into the sequence today.',
+  sends:[
+    {day:'Wed Nov 4',desc:'Day before 💌.',ch:[E('12:00 PM'),T('12:30 PM')],aud:'Attendees',at:'mem',link:'',st:'nw'},
+    {day:'Thu Nov 5',desc:'Day 1 ☀️.',ch:[E('6:00 AM'),T('6:00 AM')],aud:'Attendees',at:'mem',link:'',st:'nw'},
+    {day:'Fri Nov 6',desc:'Day 2 🙂.',ch:[E('6:00 AM'),T('6:00 AM')],aud:'Attendees',at:'mem',link:'',st:'nw'},
+    {day:'Sat Nov 7',desc:'Day 3, half day.',ch:[E('6:00 AM'),T('6:00 AM')],aud:'Attendees',at:'mem',link:'',st:'nw'}
+  ],
+  flag:'Eastern times have shifted after Nov 1: 9:00 AM AZ is now 11:00 AM ET.'},
+
+ {m:'Nov',label:'Week of November 9, after the event',range:'Nov 9 - 15',ws:['Draft by Jul 24','draft'],twigDay:'Mon Nov 9',
+  events:[],
+  twig:'Thank you and highlights from the Annual Event.',
+  sends:[
+    {day:'Tue Nov 10',desc:'Annual Event wrap-up and thank-you: highlights and replays.',ch:[E('6:00 AM')],aud:'Attendees',at:'mem',link:'',st:'nw'},
+    {day:'Thu Nov 12',desc:'Upgrade promo plus replay access.',ch:[E('6:00 AM')],aud:'Attendees + buyers',at:'list',link:'',st:'nw'}
+  ]},
+
+ {m:'Dec',label:'Week of November 30',range:'Nov 30 - Dec 6',ws:['Draft by Jul 31','draft'],twigDay:'Mon Nov 30',
+  events:[
+    {d:'2',w:'Wed',cat:'tx',t:'10XTalk LIVE Podcast (Joe Polish & Dan Sullivan)',time:'12:00 PM PT · 1:00 PM AZ · 3:00 PM ET'},
+    {d:'3',w:'Thu',cat:'gm',t:'Genius Morning & New Member Connection Session',time:'8:00 AM PT · 9:00 AM AZ · 11:00 AM ET'}
+  ],
+  twig:'10XTalk LIVE Wednesday, Genius Morning Thursday.',
+  sends:[
+    {day:'Tue Dec 1',desc:'10XTalk day-before.',ch:[E('6:00 AM')],aud:'Members',at:'mem',link:'',st:'nw'},
+    {day:'Wed Dec 2',desc:'10XTalk day-of, plus Genius Morning day-before.',ch:[E('6:00 AM')],aud:'Members',at:'mem',link:'',st:'nw'},
+    {day:'Thu Dec 3',desc:'Genius Morning morning-of.',ch:[E('6:00 AM'),T('7:30 AM')],aud:'Members',at:'mem',link:'',st:'nw'}
+  ],
+  flag:'Thanksgiving is Nov 26 and 27, so this copy has to be done before the holiday week. Sign off by Nov 19. Eastern times have shifted now: 9:00 AM AZ is 11:00 AM ET.'},
+
+ {m:'Dec',label:'Week of December 14, year-end',range:'Dec 14 - 20',ws:['Draft by Jul 31','draft'],twigDay:'Mon Dec 14',
+  events:[{d:'17',w:'Thu',cat:'yr',t:'Year-End Wrap-Up'}],
+  twig:'Year-end. The big Best of the Best recap to Members.',
+  sends:[{day:'Thu Dec 17',desc:'Year-End Best of the Best: the year\u2019s highlights.',ch:[E('6:00 AM')],aud:'Members',at:'mem',link:'',st:'nw'}],
+  flag:'After Dec 3 the calendar is open. This wrap-up is the main December Member piece.'}
+];
+
+const months=['Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const full={Jun:'June',Jul:'July',Aug:'August',Sep:'September',Oct:'October',Nov:'November',Dec:'December'};
+const STATES=[['nw','Not written'],['oa','Out for approval'],['ap','Approved / Move to Keep'],['sc','Scheduled \u2713']];
+const LBL={nw:'Not written',oa:'Out for approval',ap:'Approved / Move to Keep',sc:'Scheduled'};
+const nav=document.getElementById('nav'), weeksEl=document.getElementById('weeks');
+let active='Jun';
+
+function save(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+function load(k){try{const r=localStorage.getItem(k);return r?JSON.parse(r):null;}catch(e){return null;}}
+function getUnlocked(){try{return sessionStorage.getItem('unlockedAs');}catch(e){return null;}}
+function setUnlocked(n){try{sessionStorage.setItem('unlockedAs',n);}catch(e){}}
+function clearUnlocked(){try{sessionStorage.removeItem('unlockedAs');}catch(e){}}
+
+function shortLink(u){return u.replace(/^https?:\/\//,'');}
+function chanHTML(ch){return ch.map(c=>`<span class="chtime">${c.t}</span> <span class="ch ${c.c}">${c.l}</span>`).join(' &nbsp; ');}
+function statSelect(id,st,by){
+  const opts=STATES.map(s=>`<option value="${s[0]}" ${s[0]===st?'selected':''}>${s[1]}</option>`).join('');
+  const byTxt=(by&&st!=='nw')?'· '+by:'';
+  return `<select class="stat st-${st}" data-id="${id}" data-cur="${st}" onchange="onStat(this)">${opts}</select><span class="by" id="${id}_by">${byTxt}</span>`;
+}
+
+function render(){
+  nav.innerHTML=months.map(m=>`<button class="${m===active?'on':''}" data-m="${m}">${full[m]}</button>`).join('')
+    +`<button class="soon ${active==='2027'?'on':''}" data-m="2027">2027</button>`
+    +`<span id="who"></span>`;
+  nav.querySelectorAll('button').forEach(b=>b.onclick=()=>{active=b.dataset.m;render();window.scrollTo({top:0,behavior:'smooth'});});
+  updateWho();
+
+  if(active==='2027'){
+    weeksEl.innerHTML=`<div class="soonpanel"><h2>2027 &mdash; Coming Soon</h2><p>We hope to publish the 2027 calendar by September 1, 2026.</p><p>Dates needed. We expect the same rhythm: I Love Marketing Live on the second Wednesday, Genius Morning on the first Thursday, Office Hours quarterly.</p></div>`;
+    return;
+  }
+
+  weeksEl.innerHTML=W.filter(w=>w.m===active).map((w,wi)=>{
+    const ev=w.events.length?w.events.map(e=>{
+      const dark=GOLDCHIP.includes(e.cat);
+      const dd=e.d2?`${e.d}–${e.d2}`:e.d, ww=e.w2?`${e.w}–${e.w2}`:e.w;
+      return `<div class="ev"><div class="chip" style="background:${CAT[e.cat]};color:${dark?'#1A1400':'#fff'}"><div class="d">${dd}</div><div class="w">${ww}</div></div>
+        <div class="ev-main">
+          <span class="ev-t">${e.t}</span>
+          ${e.time?`<span class="ev-time">${e.time}</span>`:''}
+          ${e.note?`<span class="ev-note">${e.note}</span>`:''}
+          ${e.link?`<span class="ev-link"><a href="${e.link}" target="_blank">${shortLink(e.link)}</a></span>`:''}
+        </div></div>`;
+    }).join(''):'';
+    const youth=w.youth?`<div class="ybox"><div><div class="lab">GENIUS YOUTH</div><div class="body">${w.youth}</div></div></div>`:'';
+
+    const twigSend={day:w.twigDay,desc:'This Week In Genius (TWIG), the weekly communications.',ch:[E('6:00 AM')],aud:'Members',at:'mem',link:'',st:w.twigSt||'nw',twig:true};
+    const list=(w.preSends||[]).concat([twigSend], w.sends||[]);
+    const sends=`<div class="sendwrap"><div class="sub">Sends this week</div><ul class="sends">${list.map((s,si)=>{
+        const id='st_'+active+'_'+wi+'_'+si;
+        const saved=load(id);
+        const st=saved?saved.v:s.st;
+        const by=saved?saved.by:'';
+        const link=s.link?` <a href="${s.link}" target="_blank">${shortLink(s.link)}</a>`:'';
+        const tw=s.twig?`<span class="twiglead">TWIG</span> &middot; `:'';
+        return `<li><div class="sline"><span class="sday">${s.day}</span><span class="sdesc">${tw}${s.desc}${link}</span></div>
+          <div class="smeta">${chanHTML(s.ch)} <span class="aud ${s.at}">${s.aud}</span> ${statSelect(id,st,by)}</div></li>`;
+      }).join('')}</ul></div>`;
+
+    const prep=w.prep?`<div class="prep"><b>Prep:</b> ${w.prep}</div>`:'';
+    const flag=w.flag?`<div class="flag">${w.flag}</div>`:'';
+    return `<div class="week ${w.ws[1]==='quiet'?'quiet':''}">
+      <div class="whead"><h2>${w.label} <span class="range">${w.range}</span></h2><span class="wstatus ${w.ws[1]}">${w.ws[0]}</span></div>
+      ${ev}${youth}
+      <div class="twig"><div><div class="lab">TWIG &middot; This Week In Genius, the weekly communications</div><div class="body">${w.twig}</div></div></div>
+      ${sends}${prep}${flag}</div>`;
+  }).join('');
+}
+
+function updateWho(){
+  const el=document.getElementById('who'); if(!el)return;
+  const u=getUnlocked();
+  el.innerHTML=u?('Editing as '+u+' <a id="lockLink">lock</a>'):'';
+  const ll=document.getElementById('lockLink');
+  if(ll) ll.onclick=()=>{clearUnlocked();updateWho();};
+}
+
+// --- status change, password once per visit ---
+let pending=null;
+const overlay=document.getElementById('overlay'), mMsg=document.getElementById('mMsg'),
+      mPw=document.getElementById('mPw'), mErr=document.getElementById('mErr');
+
+function commit(sel,v,name){
+  sel.className='stat st-'+v; sel.dataset.cur=v;
+  save(sel.dataset.id,{v,by:name});
+  const byEl=document.getElementById(sel.dataset.id+'_by');
+  if(byEl) byEl.textContent=(v!=='nw')?'· '+name:'';
+}
+function onStat(sel){
+  const u=getUnlocked();
+  if(u){ commit(sel, sel.value, u); return; }   // already unlocked this visit
+  pending={sel,oldVal:sel.dataset.cur,newVal:sel.value};
+  mMsg.textContent='Set this send to "'+LBL[sel.value]+'". Enter your password to unlock editing for this visit.';
+  mErr.textContent=''; mPw.value='';
+  overlay.classList.add('show'); mPw.focus();
+}
+function closeModal(revert){
+  if(revert&&pending){pending.sel.value=pending.oldVal;}
+  overlay.classList.remove('show'); pending=null;
+}
+document.getElementById('mCancel').onclick=()=>closeModal(true);
+overlay.onclick=(e)=>{if(e.target===overlay)closeModal(true);};
+document.getElementById('mSave').onclick=()=>{
+  if(!pending)return;
+  const name=Object.keys(PW).find(n=>PW[n]===mPw.value);
+  if(!name){mErr.textContent='Password not recognized. Try again.';return;}
+  setUnlocked(name);
+  commit(pending.sel, pending.newVal, name);
+  closeModal(false);
+  updateWho();
+};
+mPw.addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('mSave').click();});
+
+// --- theme: follow device, Background button overrides, remembers choice ---
+const tog=document.getElementById('toggle');
+function setTheme(t){document.documentElement.setAttribute('data-theme',t);try{localStorage.setItem('theme',t);}catch(e){}}
+let pref=null; try{pref=localStorage.getItem('theme');}catch(e){}
+if(!pref){pref=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}
+setTheme(pref);
+tog.onclick=()=>setTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');
+
+render();
+</script>
+</body>
+</html>
