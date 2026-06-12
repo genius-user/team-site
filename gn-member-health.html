@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Genius Network — Member Health by Tenure</title>
+<style>
+  :root {
+    --green:#16A34A; --yellow:#EAB308; --orange:#E8741E; --red:#E2483A;
+    --ink:#1a1a1a; --muted:#6b6b6b; --line:#e6e4dd; --bg:#f4f2ec; --card:#ffffff;
+  }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    line-height:1.5; padding:32px 16px;
+  }
+  .wrap { max-width:980px; margin:0 auto; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:28px 30px; box-shadow:0 1px 3px rgba(0,0,0,0.04); }
+
+  /* gate */
+  #gate { max-width:420px; margin:9vh auto 0; }
+  #gate .card { text-align:center; }
+  #gate h1 { font-size:21px; margin:0 0 6px; }
+  #gate p { color:var(--muted); font-size:14px; margin:0 0 22px; }
+  #gate input { width:100%; padding:12px 14px; font-size:16px; border:1px solid var(--line); border-radius:10px; outline:none; }
+  #gate input:focus { border-color:#999; }
+  #gate button { width:100%; margin-top:12px; padding:12px 14px; font-size:15px; font-weight:600; color:#fff; background:var(--ink); border:0; border-radius:10px; cursor:pointer; }
+  #gate button:hover { opacity:.9; }
+  #err { color:var(--red); font-size:13px; min-height:18px; margin-top:10px; }
+  .mark { width:40px; height:40px; border-radius:10px; background:var(--ink); margin:0 auto 16px; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; font-size:15px; letter-spacing:.02em; }
+
+  h1.title { font-size:24px; font-weight:700; margin:0 0 4px; }
+  .sub { color:var(--muted); font-size:15px; margin:0 0 22px; }
+  .hr { height:1px; background:var(--line); margin:20px 0; border:0; }
+  .legend { display:flex; flex-wrap:wrap; gap:18px; margin-bottom:18px; font-size:13px; color:var(--muted); }
+  .legend span { display:flex; align-items:center; gap:7px; }
+  .sw { width:13px; height:13px; border-radius:3px; display:inline-block; }
+  .hint { font-size:13px; color:var(--muted); margin:14px 0 0; }
+  .chartbox { position:relative; width:100%; height:440px; }
+  .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin-bottom:24px; }
+  .stat { background:var(--bg); border-radius:10px; padding:14px 16px; }
+  .stat .lbl { font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; }
+  .stat .num { font-size:26px; font-weight:700; margin-top:2px; }
+  .panel { margin-top:8px; }
+  .panel-head { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:14px; }
+  .pill { font-size:13px; font-weight:600; padding:5px 12px; border-radius:999px; color:#fff; }
+  .panel h2 { font-size:18px; font-weight:700; margin:0; }
+  .count { color:var(--muted); font-size:14px; font-weight:500; }
+  table { width:100%; border-collapse:collapse; font-size:14px; }
+  th { text-align:left; font-size:12px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); padding:8px 10px; border-bottom:1px solid var(--line); font-weight:600; }
+  td { padding:9px 10px; border-bottom:1px solid var(--line); }
+  tr:last-child td { border-bottom:0; }
+  .name { font-weight:600; }
+  .empty { color:var(--muted); font-style:italic; padding:14px 10px; }
+  .placeholder { color:var(--muted); padding:28px 10px; text-align:center; border:1px dashed var(--line); border-radius:10px; }
+  .foot { color:var(--muted); font-size:12px; text-align:center; margin-top:24px; }
+  .dot { width:10px; height:10px; border-radius:50%; display:inline-block; margin-right:7px; vertical-align:-1px; }
+  .hidden { display:none !important; }
+</style>
+</head>
+<body>
+
+<div id="gate">
+  <div class="card">
+    <div class="mark">GN</div>
+    <h1>Member Health Dashboard</h1>
+    <p>Genius Network &middot; Renewals &amp; Retention</p>
+    <input id="pw" type="password" placeholder="Enter password" autocomplete="off" />
+    <button id="enter">View dashboard</button>
+    <div id="err"></div>
+  </div>
+</div>
+
+<div id="app" class="wrap hidden">
+  <div class="card">
+    <h1 class="title">Genius Network — Member Health by Tenure</h1>
+    <p class="sub">Return on Genius status across every membership year &middot; as of June 12, 2026</p>
+
+    <div class="stats" id="stats"></div>
+
+    <div class="legend">
+      <span><i class="sw" style="background:var(--green)"></i> Thriving</span>
+      <span><i class="sw" style="background:var(--yellow)"></i> On track</span>
+      <span><i class="sw" style="background:var(--orange)"></i> Disconnecting</span>
+      <span><i class="sw" style="background:var(--red)"></i> Gone dark</span>
+    </div>
+
+    <div class="chartbox">
+      <canvas id="chart" role="img" aria-label="Stacked bar chart of Genius Network Members by tenure cohort and health color. Click a segment to see Member names."></canvas>
+    </div>
+    <p class="hint">&#9755;&nbsp; Click any colored segment to see the Members inside it.</p>
+
+    <hr class="hr">
+
+    <div class="panel" id="panel">
+      <div class="placeholder">Select a segment above to view Member names.</div>
+    </div>
+
+    <p class="foot">Genius Network &middot; Renewals &amp; Retention &middot; Confidential</p>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const PASSWORD = "GN-Member-Health";
+const MEMBERS = [{"first":"Dan","last":"Sullivan","type":"100K Full","renewal":"1/15/2026","since":"1/20/2010","color":"g","cohort":"10+ years"},{"first":"Babs","last":"Smith","type":"100K Partner","renewal":"1/15/2026","since":"1/20/2010","color":"g","cohort":"10+ years"},{"first":"Mike","last":"Koenigs","type":"100K Full","renewal":"6/1/2026","since":"4/16/2010","color":"g","cohort":"10+ years"},{"first":"Paul","last":"Colligan","type":"GN Vendor","renewal":"7/31/2026","since":"11/20/2012","color":"g","cohort":"10+ years"},{"first":"Joel","last":"Weldon","type":"GN Full","renewal":"1/1/2027","since":"1/3/2015","color":"g","cohort":"10+ years"},{"first":"Brittany","last":"Anderson","type":"GN Partner","renewal":"11/3/2026","since":"11/20/2015","color":"g","cohort":"10+ years"},{"first":"Elizabeth","last":"Kabanyan","type":"GN Full","renewal":"2/19/2027","since":"8/15/2017","color":"g","cohort":"Years 5-10"},{"first":"Darrell","last":"Sutherland","type":"100K Full","renewal":"11/9/2025","since":"11/7/2017","color":"g","cohort":"Years 5-10"},{"first":"John","last":"Dalton","type":"GN Full","renewal":"11/1/2026","since":"11/7/2017","color":"g","cohort":"Years 5-10"},{"first":"Jason","last":"Campbell","type":"GN Full","renewal":"12/1/2026","since":"2/16/2018","color":"g","cohort":"Years 5-10"},{"first":"Russ","last":"Palmer","type":"100K Full","renewal":"10/3/2026","since":"11/3/2018","color":"g","cohort":"Years 5-10"},{"first":"Scott","last":"Danner","type":"GN Full","renewal":"10/25/2026","since":"11/3/2018","color":"g","cohort":"Years 5-10"},{"first":"Matt","last":"Strong","type":"GN Full","renewal":"10/1/2027","since":"11/3/2019","color":"g","cohort":"Years 5-10"},{"first":"Rob","last":"Wallace","type":"100K Full","renewal":"11/18/2026","since":"12/4/2019","color":"g","cohort":"Years 5-10"},{"first":"Pat","last":"Murray","type":"100K Full","renewal":"11/20/2027","since":"9/22/2020","color":"g","cohort":"Years 5-10"},{"first":"Whitney","last":"Jones","type":"GN Vendor","renewal":"4/1/2025","since":"11/24/2020","color":"g","cohort":"Years 5-10"},{"first":"Jenny","last":"Locklin","type":"GN Partner","renewal":"1/5/2027","since":"12/20/2020","color":"g","cohort":"Years 5-10"},{"first":"Annie","last":"Lalla","type":"GN Vendor","renewal":"5/19/2025","since":"5/19/2022","color":"g","cohort":"Year 5"},{"first":"Nicole","last":"Serena","type":"100K Full","renewal":"11/1/2025","since":"5/24/2022","color":"g","cohort":"Year 5"},{"first":"Tommy","last":"Mello","type":"100K Full","renewal":"11/2/2026","since":"8/17/2022","color":"g","cohort":"Year 4"},{"first":"Jason","last":"Paulus","type":"100K Full","renewal":"11/1/2026","since":"11/1/2022","color":"g","cohort":"Year 4"},{"first":"Peter","last":"Thomas","type":"100K Full","renewal":"1/1/2026","since":"1/1/2023","color":"g","cohort":"Year 4"},{"first":"Kerry","last":"Boehner","type":"GN Full","renewal":"7/6/2028","since":"6/6/2023","color":"g","cohort":"Year 4"},{"first":"John","last":"Kissell","type":"GN Full","renewal":"10/19/2028","since":"10/19/2023","color":"g","cohort":"Year 3"},{"first":"Barry","last":"Garapedian","type":"100K Full","renewal":"10/6/2026","since":"11/19/2023","color":"g","cohort":"Year 3"},{"first":"Janna","last":"Wheeler","type":"GN Full","renewal":"11/20/2026","since":"12/11/2023","color":"g","cohort":"Year 3"},{"first":"Peter","last":"Cobabe","type":"GN Full","renewal":"11/7/2026","since":"11/7/2024","color":"g","cohort":"Year 2"},{"first":"James","last":"Carroll","type":"GN Full","renewal":"11/1/2027","since":"11/9/2024","color":"g","cohort":"Year 2"},{"first":"Kurt","last":"Reif","type":"GN Full","renewal":"12/1/2029","since":"11/9/2024","color":"g","cohort":"Year 2"},{"first":"Jimmie","last":"Applegate","type":"GN Full","renewal":"11/9/2026","since":"11/9/2024","color":"g","cohort":"Year 2"},{"first":"Randi","last":"Brill","type":"GN Full","renewal":"11/9/2026","since":"11/9/2024","color":"g","cohort":"Year 2"},{"first":"Nathan","last":"Jamail","type":"GN Full","renewal":"11/11/2026","since":"11/11/2024","color":"g","cohort":"Year 2"},{"first":"Chuck","last":"Thokey","type":"GN Full","renewal":"11/15/2026","since":"11/15/2024","color":"g","cohort":"Year 2"},{"first":"Hugh","last":"Boyle","type":"GN Full","renewal":"12/22/2027","since":"12/22/2024","color":"g","cohort":"Year 2"},{"first":"Shannon","last":"Jamail","type":"GN Partner","renewal":"12/27/2026","since":"12/27/2024","color":"g","cohort":"Year 2"},{"first":"Abram","last":"Huber","type":"100K Full","renewal":"11/14/2026","since":"3/4/2025","color":"g","cohort":"Year 2"},{"first":"Sean","last":"Hardy","type":"GN Full","renewal":"8/14/2026","since":"8/14/2025","color":"g","cohort":"Year 1"},{"first":"Guffy","last":"Wright","type":"GN Full","renewal":"8/28/2026","since":"8/28/2025","color":"g","cohort":"Year 1"},{"first":"Luke","last":"Sparks","type":"100K Partner","renewal":"11/1/2026","since":"11/5/2025","color":"g","cohort":"Year 1"},{"first":"Fred","last":"Young","type":"GN Full","renewal":"11/1/2026","since":"11/6/2025","color":"g","cohort":"Year 1"},{"first":"Jason","last":"Giles","type":"GN Full","renewal":"11/7/2028","since":"11/7/2025","color":"g","cohort":"Year 1"},{"first":"Christi","last":"Van Rite","type":"GN Full","renewal":"11/7/2026","since":"11/7/2025","color":"g","cohort":"Year 1"},{"first":"Anna","last":"David","type":"GN Full","renewal":"11/7/2026","since":"11/7/2025","color":"g","cohort":"Year 1"},{"first":"Kris","last":"Garlewicz","type":"GN Full","renewal":"11/8/2026","since":"11/8/2025","color":"g","cohort":"Year 1"},{"first":"Adam","last":"Bliss","type":"GN Full","renewal":"11/8/2028","since":"11/8/2025","color":"g","cohort":"Year 1"},{"first":"Kristy","last":"Schaffer","type":"GN Full","renewal":"11/8/2028","since":"11/8/2025","color":"g","cohort":"Year 1"},{"first":"Maida","last":"Crump","type":"GN Partner","renewal":"11/8/2026","since":"11/8/2025","color":"g","cohort":"Year 1"},{"first":"Matthew","last":"Kuehlorn","type":"GN Full","renewal":"11/9/2028","since":"11/9/2025","color":"g","cohort":"Year 1"},{"first":"Randy","last":"Gage","type":"GN Full","renewal":"11/9/2026","since":"11/9/2025","color":"g","cohort":"Year 1"},{"first":"Kristy","last":"Crabtree","type":"GN Full","renewal":"11/9/2026","since":"11/9/2025","color":"g","cohort":"Year 1"},{"first":"Hasard","last":"Lee","type":"GN Full","renewal":"11/19/2026","since":"11/19/2025","color":"g","cohort":"Year 1"},{"first":"Shad","last":"Reynolds","type":"GN Full","renewal":"12/1/2026","since":"12/1/2025","color":"g","cohort":"Year 1"},{"first":"Will","last":"Smith","type":"GN Full","renewal":"2/1/2027","since":"1/15/2026","color":"g","cohort":"Year 1"},{"first":"Greg","last":"Hague","type":"100K Full","renewal":"1/16/2027","since":"1/16/2026","color":"g","cohort":"Year 1"},{"first":"Erin","last":"B. Haag","type":"GN Full","renewal":"2/5/2027","since":"2/5/2026","color":"g","cohort":"Year 1"},{"first":"Joey","last":"Mur\u00e9","type":"GN Partner","renewal":"2/26/2027","since":"2/26/2026","color":"g","cohort":"Year 1"},{"first":"John","last":"Ratliff","type":"100K Full","renewal":"5/1/2026","since":"10/20/2011","color":"o","cohort":"10+ years"},{"first":"Cosmo","last":"Boyd","type":"GN Full","renewal":"3/5/2028","since":"8/7/2014","color":"o","cohort":"10+ years"},{"first":"Jim","last":"Dew","type":"GN Full","renewal":"4/14/2027","since":"4/15/2016","color":"o","cohort":"10+ years"},{"first":"Michael","last":"Bernoff","type":"GN Full","renewal":"10/1/2026","since":"2/13/2017","color":"o","cohort":"Years 5-10"},{"first":"Wesley","last":"Sierk","type":"GN Partner","renewal":"10/1/2028","since":"7/31/2017","color":"o","cohort":"Years 5-10"},{"first":"Richard","last":"Robbins","type":"GN Full","renewal":"11/6/2026","since":"11/4/2018","color":"o","cohort":"Years 5-10"},{"first":"Victor","last":"Chapela","type":"GN Vendor","renewal":"7/9/2026","since":"12/26/2018","color":"o","cohort":"Years 5-10"},{"first":"Sebastien","last":"Croon","type":"GN Full","renewal":"10/18/2026","since":"11/4/2019","color":"o","cohort":"Years 5-10"},{"first":"Garrain","last":"Ase","type":"GN Full","renewal":"10/31/2026","since":"2/13/2022","color":"o","cohort":"Year 5"},{"first":"Tim","last":"Schmidt","type":"100K Full","renewal":"11/1/2027","since":"2/14/2022","color":"o","cohort":"Year 5"},{"first":"Calvin","last":"Bagley","type":"GN Full","renewal":"11/1/2026","since":"11/29/2022","color":"o","cohort":"Year 4"},{"first":"Jarrett","last":"Bilicek","type":"100K Full","renewal":"1/20/2026","since":"1/20/2023","color":"o","cohort":"Year 4"},{"first":"Cammie","last":"Rice","type":"GN Full","renewal":"5/17/2027","since":"5/17/2023","color":"o","cohort":"Year 4"},{"first":"Chris","last":"Wang","type":"100K Full","renewal":"11/1/2026","since":"11/28/2023","color":"o","cohort":"Year 3"},{"first":"Dr. Jack","last":"Wolfson","type":"GN Full","renewal":"11/8/2026","since":"12/1/2023","color":"o","cohort":"Year 3"},{"first":"Aleric","last":"Heck","type":"GN Full","renewal":"11/1/2026","since":"12/1/2023","color":"o","cohort":"Year 3"},{"first":"Regan","last":"Archibald","type":"GN Full","renewal":"11/7/2026","since":"12/12/2023","color":"o","cohort":"Year 3"},{"first":"Rita","last":"Thomas","type":"100K Partner","renewal":"4/30/2026","since":"4/30/2024","color":"o","cohort":"Year 3"},{"first":"Edward","last":"Gelfand","type":"GN Full","renewal":"9/15/2026","since":"9/25/2024","color":"o","cohort":"Year 2"},{"first":"Dale","last":"Cavan","type":"GN Full","renewal":"11/9/2026","since":"11/9/2024","color":"o","cohort":"Year 2"},{"first":"Jacqueline","last":"Kuiper","type":"GN Partner","renewal":"9/12/2026","since":"1/12/2025","color":"o","cohort":"Year 2"},{"first":"Missy","last":"Godinez","type":"100K Partner","renewal":"10/8/2026","since":"2/8/2025","color":"o","cohort":"Year 2"},{"first":"Bertrand","last":"Parnall","type":"GN Full","renewal":"7/1/2026","since":"7/1/2025","color":"o","cohort":"Year 1"},{"first":"Steve","last":"Fields","type":"GN Full","renewal":"7/3/2026","since":"7/3/2025","color":"o","cohort":"Year 1"},{"first":"Josh","last":"Tinkle","type":"GN Partner","renewal":"8/29/2026","since":"8/29/2025","color":"o","cohort":"Year 1"},{"first":"Jason","last":"Hartman","type":"GN Full","renewal":"9/8/2026","since":"9/8/2025","color":"o","cohort":"Year 1"},{"first":"Sam","last":"Zaidspiner","type":"GN Vendor","renewal":"10/20/2026","since":"10/20/2025","color":"o","cohort":"Year 1"},{"first":"Monty","last":"Waugh","type":"GN Partner","renewal":"11/4/2026","since":"11/4/2025","color":"o","cohort":"Year 1"},{"first":"Sam","last":"Hosseini","type":"GN Full","renewal":"11/8/2026","since":"11/8/2025","color":"o","cohort":"Year 1"},{"first":"M\u00e9lissa-Sue","last":"Methven","type":"GN Full","renewal":"11/8/2026","since":"11/8/2025","color":"o","cohort":"Year 1"},{"first":"Zach","last":"Breed","type":"GN Partner","renewal":"11/8/2028","since":"11/8/2025","color":"o","cohort":"Year 1"},{"first":"Russ","last":"Morgan","type":"GN Full","renewal":"1/6/2027","since":"1/6/2026","color":"o","cohort":"Year 1"},{"first":"Robin","last":"Robins","type":"GN Vendor","renewal":"1/1/2017","since":"8/17/2009","color":"o","cohort":"10+ years"},{"first":"Denise","last":"Gosnell","type":"GN Vendor","renewal":"1/15/2026","since":"9/23/2010","color":"r","cohort":"10+ years"},{"first":"Sekhar","last":"Vemparala","type":"GN Full","renewal":"10/1/2026","since":"9/20/2013","color":"r","cohort":"10+ years"},{"first":"David","last":"Asprey","type":"GN Full","renewal":"3/12/2027","since":"12/4/2013","color":"r","cohort":"10+ years"},{"first":"Devang","last":"Patel","type":"GN Full","renewal":"10/1/2028","since":"3/25/2014","color":"r","cohort":"10+ years"},{"first":"David","last":"Berg","type":"GN Full","renewal":"1/31/2027","since":"5/19/2014","color":"r","cohort":"10+ years"},{"first":"Summer","last":"Mulder","type":"GN Vendor","renewal":"1/1/2026","since":"9/14/2015","color":"r","cohort":"10+ years"},{"first":"Sue","last":"Robbins","type":"GN Partner","renewal":"11/6/2026","since":"11/4/2018","color":"r","cohort":"Years 5-10"},{"first":"Chris","last":"Voss","type":"100K Full","renewal":"11/27/2026","since":"11/23/2020","color":"r","cohort":"Years 5-10"},{"first":"Mark","last":"Skimming","type":"GN Full","renewal":"11/1/2026","since":"11/30/2022","color":"r","cohort":"Year 4"},{"first":"Dale","last":"Wills","type":"100K Full","renewal":"7/7/2026","since":"7/7/2023","color":"r","cohort":"Year 3"},{"first":"Dr. Wayne","last":"Pernell","type":"GN Full","renewal":"4/18/2025","since":"4/18/2024","color":"r","cohort":"Year 3"},{"first":"Adam","last":"Bensman","type":"GN Full","renewal":"7/17/2026","since":"7/8/2024","color":"r","cohort":"Year 2"},{"first":"Sami","last":"Erhart","type":"GN Partner","renewal":"12/1/2026","since":"8/21/2024","color":"r","cohort":"Year 2"},{"first":"Cally","last":"Walker","type":"GN Full","renewal":"4/22/2026","since":"4/22/2025","color":"r","cohort":"Year 2"},{"first":"David","last":"Trapp","type":"GN Full","renewal":"5/9/2026","since":"5/9/2025","color":"r","cohort":"Year 2"},{"first":"Barrett","last":"Ersek","type":"100K Full","renewal":"5/22/2026","since":"5/22/2025","color":"r","cohort":"Year 2"},{"first":"Amy","last":"Laughlin","type":"GN Full","renewal":"8/8/2026","since":"8/8/2025","color":"r","cohort":"Year 1"},{"first":"Tyler","last":"Reams","type":"GN Full","renewal":"8/11/2026","since":"8/11/2025","color":"r","cohort":"Year 1"},{"first":"Sanjay","last":"Vemparala","type":"GN Partner","renewal":"10/7/2026","since":"10/7/2025","color":"r","cohort":"Year 1"},{"first":"Constance","last":"Wannamaker","type":"GN Full","renewal":"11/7/2028","since":"11/7/2025","color":"r","cohort":"Year 1"},{"first":"Danita","last":"Sands","type":"GN Full","renewal":"11/8/2026","since":"11/8/2025","color":"r","cohort":"Year 1"},{"first":"Abby","last":"Leibowitz","type":"GN Full","renewal":"12/18/2026","since":"12/18/2025","color":"r","cohort":"Year 1"},{"first":"Izabela","last":"Hamilton","type":"GN Full","renewal":"7/30/2026","since":"7/30/2025","color":"r","cohort":"Year 1"},{"first":"Brian","last":"Kurtz","type":"GN Full","renewal":"1/3/2027","since":"3/9/2010","color":"y","cohort":"10+ years"},{"first":"Dean","last":"Jackson","type":"GN Vendor","renewal":"12/15/2020","since":"8/1/2011","color":"y","cohort":"10+ years"},{"first":"Jeff","last":"Hays","type":"100K Full","renewal":"3/1/2025","since":"8/8/2013","color":"y","cohort":"10+ years"},{"first":"Parris","last":"Lampropoulos","type":"GN Full","renewal":"11/1/2026","since":"8/19/2013","color":"y","cohort":"10+ years"},{"first":"Denice","last":"Gierach","type":"GN Full","renewal":"9/1/2026","since":"8/21/2013","color":"y","cohort":"10+ years"},{"first":"Garnet","last":"Morris","type":"100K Full","renewal":"1/15/2027","since":"6/14/2014","color":"y","cohort":"10+ years"},{"first":"Eelco","last":"De Boer","type":"100K Full","renewal":"10/29/2026","since":"12/1/2014","color":"y","cohort":"10+ years"},{"first":"Gary","last":"Klaben","type":"GN Full","renewal":"9/22/2026","since":"10/28/2015","color":"y","cohort":"10+ years"},{"first":"Randy","last":"Long","type":"100K Full","renewal":"10/23/2026","since":"10/29/2015","color":"y","cohort":"10+ years"},{"first":"Susan","last":"Potje","type":"GN Full","renewal":"10/10/2026","since":"10/29/2015","color":"y","cohort":"10+ years"},{"first":"Bryan","last":"Sweet","type":"GN Full","renewal":"11/6/2026","since":"11/20/2015","color":"y","cohort":"10+ years"},{"first":"Draye","last":"Redfern","type":"GN Full","renewal":"2/13/2027","since":"4/22/2016","color":"y","cohort":"10+ years"},{"first":"Jason","last":"Korman","type":"GN Vendor","renewal":"1/1/2026","since":"3/21/2017","color":"y","cohort":"Years 5-10"},{"first":"Dr. Benjamin","last":"Hardy","type":"GN Vendor","renewal":"9/4/2025","since":"7/7/2017","color":"y","cohort":"Years 5-10"},{"first":"Jeffrey","last":"Pavone","type":"100K Full","renewal":"12/8/2026","since":"12/27/2017","color":"y","cohort":"Years 5-10"},{"first":"Stephan","last":"Spencer","type":"GN Full","renewal":"11/6/2027","since":"11/3/2018","color":"y","cohort":"Years 5-10"},{"first":"Joe","last":"Clark, CFP","type":"GN Full","renewal":"10/6/2026","since":"11/3/2018","color":"y","cohort":"Years 5-10"},{"first":"Rem","last":"Oculee","type":"GN Full","renewal":"9/5/2026","since":"2/15/2019","color":"y","cohort":"Years 5-10"},{"first":"Dr. Susan","last":"Kichuk","type":"100K Partner","renewal":"1/21/2027","since":"5/1/2020","color":"y","cohort":"Years 5-10"},{"first":"Chad","last":"Hoffmann","type":"GN Full","renewal":"9/30/2028","since":"7/23/2020","color":"y","cohort":"Years 5-10"},{"first":"Evan","last":"C Carmichael","type":"100K Full","renewal":"5/1/2026","since":"11/3/2020","color":"y","cohort":"Years 5-10"},{"first":"Dr. PattyAnn","last":"Tublin","type":"GN Full","renewal":"11/15/2026","since":"12/3/2020","color":"y","cohort":"Years 5-10"},{"first":"Bill","last":"Gerber","type":"GN Full","renewal":"12/10/2026","since":"12/10/2020","color":"y","cohort":"Years 5-10"},{"first":"Antonio","last":"Green","type":"GN Full","renewal":"4/5/2027","since":"4/5/2021","color":"y","cohort":"Years 5-10"},{"first":"Paul","last":"Goyette","type":"GN Full","renewal":"8/27/2026","since":"8/27/2021","color":"y","cohort":"Year 5"},{"first":"Benjamin","last":"Amiga","type":"GN Full","renewal":"2/1/2027","since":"1/4/2022","color":"y","cohort":"Year 5"},{"first":"Dr","last":"Don Wood","type":"GN Full","renewal":"2/13/2026","since":"2/13/2022","color":"y","cohort":"Year 5"},{"first":"Gary","last":"Sanchez","type":"GN Full","renewal":"1/1/2026","since":"11/1/2022","color":"y","cohort":"Year 4"},{"first":"Gwen","last":"Bortner","type":"GN Partner","renewal":"12/4/2025","since":"11/4/2022","color":"y","cohort":"Year 4"},{"first":"Ellen","last":"Long","type":"GN Partner","renewal":"1/15/2027","since":"1/5/2023","color":"y","cohort":"Year 4"},{"first":"Josh","last":"Nelson","type":"GN Full","renewal":"3/24/2027","since":"1/24/2023","color":"y","cohort":"Year 4"},{"first":"Aaron","last":"Hartman MD","type":"GN Partner","renewal":"11/1/2026","since":"3/7/2023","color":"y","cohort":"Year 4"},{"first":"Becky","last":"Hartman","type":"GN Full","renewal":"11/1/2026","since":"3/8/2023","color":"y","cohort":"Year 4"},{"first":"Caroline","last":"Alan","type":"GN Full","renewal":"11/23/2026","since":"12/1/2023","color":"y","cohort":"Year 3"},{"first":"Will","last":"Polston","type":"GN Full","renewal":"12/1/2026","since":"12/1/2023","color":"y","cohort":"Year 3"},{"first":"Akram","last":"Abdallah","type":"GN Full","renewal":"12/2/2026","since":"12/3/2023","color":"y","cohort":"Year 3"},{"first":"Ed","last":"Wallace","type":"GN Full","renewal":"11/1/2026","since":"12/3/2023","color":"y","cohort":"Year 3"},{"first":"Jeremy","last":"Weiser","type":"GN Partner","renewal":"11/1/2026","since":"12/3/2023","color":"y","cohort":"Year 3"},{"first":"Jeffrey","last":"Wallace","type":"GN Partner","renewal":"11/1/2026","since":"12/3/2023","color":"y","cohort":"Year 3"},{"first":"Jason","last":"Wallace","type":"GN Partner","renewal":"11/1/2026","since":"12/3/2023","color":"y","cohort":"Year 3"},{"first":"Ken","last":"Patel","type":"GN Full","renewal":"12/3/2026","since":"12/3/2023","color":"y","cohort":"Year 3"},{"first":"Jonathan","last":"Whistman","type":"GN Full","renewal":"11/4/2026","since":"12/3/2023","color":"y","cohort":"Year 3"},{"first":"Cliff","last":"Robello","type":"GN Full","renewal":"10/1/2026","since":"12/3/2023","color":"y","cohort":"Year 3"},{"first":"Scott","last":"Glynn","type":"GN Full","renewal":"5/1/2027","since":"12/6/2023","color":"y","cohort":"Year 3"},{"first":"Daanyaal","last":"Bandukwala","type":"GN Partner","renewal":"11/1/2026","since":"12/6/2023","color":"y","cohort":"Year 3"},{"first":"Julie","last":"Trieb","type":"GN Full","renewal":"12/3/2027","since":"12/29/2023","color":"y","cohort":"Year 3"},{"first":"Emily","last":"Gang","type":"GN Full","renewal":"12/13/2026","since":"1/4/2024","color":"y","cohort":"Year 3"},{"first":"Giovanna","last":"Bocci","type":"100K Partner","renewal":"10/15/2026","since":"1/9/2024","color":"y","cohort":"Year 3"},{"first":"Michael","last":"Erath","type":"GN Full","renewal":"2/24/2027","since":"2/24/2024","color":"y","cohort":"Year 3"},{"first":"Jeff","last":"Dudan","type":"100K Full","renewal":"7/1/2026","since":"2/29/2024","color":"y","cohort":"Year 3"},{"first":"Henry","last":"Laughlin","type":"GN Full","renewal":"9/18/2026","since":"6/27/2024","color":"y","cohort":"Year 2"},{"first":"Shahid","last":"Iqbal","type":"GN Full","renewal":"7/17/2026","since":"7/1/2024","color":"y","cohort":"Year 2"},{"first":"Tom","last":"Powell","type":"GN Full","renewal":"11/21/2026","since":"7/24/2024","color":"y","cohort":"Year 2"},{"first":"Simon","last":"Bowen","type":"100K Full","renewal":"10/15/2026","since":"9/20/2024","color":"y","cohort":"Year 2"},{"first":"Chris","last":"Collins","type":"100K Full","renewal":"10/8/2026","since":"10/8/2024","color":"y","cohort":"Year 2"},{"first":"Rob","last":"Levin","type":"GN Full","renewal":"11/8/2027","since":"11/8/2024","color":"y","cohort":"Year 2"},{"first":"Keith","last":"Knell","type":"100K Full","renewal":"10/15/2026","since":"11/8/2024","color":"y","cohort":"Year 2"},{"first":"Shelby","last":"Scarbrough","type":"GN Full","renewal":"11/9/2027","since":"11/9/2024","color":"y","cohort":"Year 2"},{"first":"Dana","last":"Bonander","type":"GN Full","renewal":"11/9/2027","since":"11/9/2024","color":"y","cohort":"Year 2"},{"first":"Jade","last":"Green","type":"GN Full","renewal":"11/9/2026","since":"11/9/2024","color":"y","cohort":"Year 2"},{"first":"Nathan","last":"Dart","type":"GN Partner","renewal":"11/10/2026","since":"11/10/2024","color":"y","cohort":"Year 2"},{"first":"Josh","last":"Horton","type":"GN Full","renewal":"12/6/2026","since":"12/6/2024","color":"y","cohort":"Year 2"},{"first":"Mike","last":"Kane","type":"GN Full","renewal":"3/31/2027","since":"2/7/2025","color":"y","cohort":"Year 2"},{"first":"Kyle","last":"Bickham","type":"GN Full","renewal":"6/20/2026","since":"6/16/2025","color":"y","cohort":"Year 1"},{"first":"Andrew","last":"Roberts","type":"GN Full","renewal":"7/9/2028","since":"7/9/2025","color":"y","cohort":"Year 1"},{"first":"Rob","last":"Reich","type":"GN Full","renewal":"9/4/2026","since":"9/4/2025","color":"y","cohort":"Year 1"},{"first":"Rick","last":"Durfee","type":"GN Full","renewal":"10/29/2026","since":"10/29/2025","color":"y","cohort":"Year 1"},{"first":"Thea","last":"Wood","type":"GN Partner","renewal":"11/8/2026","since":"11/1/2025","color":"y","cohort":"Year 1"},{"first":"Rocky","last":"Lalvani","type":"GN Full","renewal":"11/7/2028","since":"11/7/2025","color":"y","cohort":"Year 1"},{"first":"Doug","last":"Wood","type":"GN Full","renewal":"11/8/2026","since":"11/7/2025","color":"y","cohort":"Year 1"},{"first":"John","last":"McCredie","type":"GN Full","renewal":"11/8/2026","since":"11/8/2025","color":"y","cohort":"Year 1"},{"first":"Michael","last":"Hunter","type":"GN Full","renewal":"11/8/2026","since":"11/8/2025","color":"y","cohort":"Year 1"},{"first":"Stephen","last":"Kowalski","type":"GN Full","renewal":"11/8/2028","since":"11/8/2025","color":"y","cohort":"Year 1"},{"first":"Thomas","last":"McCredie","type":"GN Partner","renewal":"11/8/2026","since":"11/8/2025","color":"y","cohort":"Year 1"},{"first":"Andrea","last":"Tse","type":"GN Full","renewal":"11/8/2026","since":"11/8/2025","color":"y","cohort":"Year 1"},{"first":"Sean","last":"Jones","type":"GN Full","renewal":"1/15/2027","since":"11/17/2025","color":"y","cohort":"Year 1"},{"first":"Ryan","last":"Johanson","type":"GN Full","renewal":"12/9/2026","since":"12/9/2025","color":"y","cohort":"Year 1"},{"first":"Mike","last":"Malloy","type":"GN Full","renewal":"2/10/2027","since":"2/4/2026","color":"y","cohort":"Year 1"},{"first":"Jake","last":"Campbell","type":"GN Partner","renewal":"3/1/2027","since":"3/1/2026","color":"y","cohort":"Year 1"},{"first":"Mario","last":"Fachini","type":"GN Full","renewal":"3/15/2027","since":"3/1/2026","color":"y","cohort":"Year 1"},{"first":"Raylen","last":"Davis","type":"GN Full","renewal":"3/10/2027","since":"3/10/2026","color":"y","cohort":"Year 1"},{"first":"Perry","last":"Gladstone","type":"GN Full","renewal":"4/1/2027","since":"3/18/2026","color":"y","cohort":"Year 1"},{"first":"Celeste","last":"Noelle","type":"GN Full","renewal":"4/10/2027","since":"4/1/2026","color":"y","cohort":"Year 1"},{"first":"Kasim","last":"Aslam","type":"GN Full","renewal":"6/1/2027","since":"4/23/2026","color":"y","cohort":"Year 1"},{"first":"Alex","last":"Duta","type":"GN Full","renewal":"5/22/2027","since":"5/22/2026","color":"y","cohort":"Year 1"},{"first":"Shamoil","last":"Soni","type":"GN Partner","renewal":"5/20/2027","since":"5/22/2026","color":"y","cohort":"Year 1"},{"first":"Scott","last":"Knight","type":"GN Full","renewal":"5/27/2027","since":"5/27/2026","color":"y","cohort":"Year 1"},{"first":"Sumathi","last":"Gudapati","type":"GN Full","renewal":"5/28/2027","since":"5/28/2026","color":"y","cohort":"Year 1"},{"first":"Matt","last":"Balducci","type":"GN Partner","renewal":"5/28/2026","since":"5/28/2026","color":"y","cohort":"Year 1"},{"first":"Jason","last":"Corman","type":"GN Full","renewal":"6/1/2027","since":"6/1/2026","color":"y","cohort":"Year 1"},{"first":"David","last":"Jackson","type":"GN Full","renewal":"6/9/2027","since":"6/9/2026","color":"y","cohort":"Year 1"},{"first":"Glenn","last":"Main","type":"GN Full","renewal":"6/15/2027","since":"6/9/2026","color":"y","cohort":"Year 1"},{"first":"Paul","last":"DeLano","type":"GN Full","renewal":"11/8/2027","since":"11/8/2026","color":"y","cohort":"Future start"},{"first":"Haafiz","last":"Dossa","type":"GN Vendor","renewal":"5/21/27","since":"5/21/26","color":"y","cohort":"Year 1"},{"first":"Tony","last":"Couch","type":"GN Vendor","renewal":"5/28/27","since":"5/28/26","color":"y","cohort":"Year 1"}];
+
+const COLORS = { g:'#16A34A', y:'#EAB308', o:'#E8741E', r:'#E2483A' };
+const COLOR_NAME = { g:'Thriving (Green)', y:'On track (Yellow)', o:'Disconnecting (Orange)', r:'Gone dark (Red)' };
+const COHORTS = ['Year 1','Year 2','Year 3','Year 4','Year 5','Years 5-10','10+ years'];
+const ORDER = ['g','y','o','r'];
+
+function count(co,c){ return MEMBERS.filter(m=>m.cohort===co && m.color===c).length; }
+function list(co,c){ return MEMBERS.filter(m=>m.cohort===co && m.color===c)
+  .sort((a,b)=> (a.last+a.first).localeCompare(b.last+b.first)); }
+
+let chartBuilt = false;
+function buildDashboard(){
+  if(chartBuilt) return;
+  chartBuilt = true;
+
+  const active = MEMBERS.filter(m=>m.cohort!=='Future start');
+  const atRisk = active.filter(m=>m.color==='o'||m.color==='r').length;
+  const thriving = active.filter(m=>m.color==='g').length;
+  document.getElementById('stats').innerHTML = [
+    ['Active Members', active.length],
+    ['Thriving', thriving + ' &middot; ' + Math.round(thriving/active.length*100) + '%'],
+    ['At-risk', atRisk + ' &middot; ' + Math.round(atRisk/active.length*100) + '%'],
+    ['Next start', '1']
+  ].map(s=>'<div class="stat"><div class="lbl">'+s[0]+'</div><div class="num">'+s[1]+'</div></div>').join('');
+
+  const datasets = ORDER.map(c=>({
+    label: COLOR_NAME[c], colorKey:c,
+    data: COHORTS.map(co=>count(co,c)),
+    backgroundColor: COLORS[c], borderWidth:1, borderColor:'#fff'
+  }));
+  const totals = COHORTS.map(co=>ORDER.reduce((s,c)=>s+count(co,c),0));
+  const atRiskPct = COHORTS.map(co=>{const t=ORDER.reduce((s,c)=>s+count(co,c),0); const a=count(co,'o')+count(co,'r'); return t?Math.round(a/t*100):0;});
+
+  const topLabel = { id:'topLabel', afterDatasetsDraw(chart){
+    const {ctx, scales:{x,y}} = chart; ctx.save(); ctx.textAlign='center';
+    COHORTS.forEach((_,i)=>{
+      const xp=x.getPixelForValue(i), yp=y.getPixelForValue(totals[i])-22;
+      ctx.font='700 13px sans-serif'; ctx.fillStyle='#1a1a1a'; ctx.fillText('n='+totals[i], xp, yp);
+      ctx.font='600 12px sans-serif'; ctx.fillStyle= atRiskPct[i]>=30 ? '#A32D2D' : '#6b6b6b'; ctx.fillText(atRiskPct[i]+'% at-risk', xp, yp+15);
+    });
+    ctx.restore();
+  }};
+
+  new Chart(document.getElementById('chart'), {
+    type:'bar',
+    data:{ labels:COHORTS, datasets },
+    options:{
+      responsive:true, maintainAspectRatio:false, layout:{ padding:{ top:34 } },
+      onHover:(e,els)=>{ e.native.target.style.cursor = els.length ? 'pointer' : 'default'; },
+      onClick:(e,els)=>{ if(!els.length) return; const el=els[0]; showPanel(COHORTS[el.index], datasets[el.datasetIndex].colorKey); },
+      scales:{
+        x:{ stacked:true, grid:{display:false}, ticks:{ autoSkip:false, font:{size:13} } },
+        y:{ stacked:true, beginAtZero:true, suggestedMax:78, title:{display:true,text:'Members'}, ticks:{font:{size:12}} }
+      },
+      plugins:{ legend:{display:false}, tooltip:{ callbacks:{
+        title:(it)=> COHORTS[it[0].dataIndex],
+        label:(it)=> it.dataset.label+': '+it.raw+'  (click to see names)'
+      }}}
+    },
+    plugins:[topLabel]
+  });
+}
+
+function showPanel(co,c){
+  const rows = list(co,c); const panel = document.getElementById('panel');
+  let html = '<div class="panel-head"><span class="pill" style="background:'+COLORS[c]+'">'+COLOR_NAME[c]+'</span><h2>'+co+'</h2><span class="count">'+rows.length+' Member'+(rows.length===1?'':'s')+'</span></div>';
+  if(!rows.length){ html += '<div class="empty">No Members in this group.</div>'; }
+  else {
+    html += '<table><thead><tr><th>Name</th><th>Type</th><th>Renewal date</th><th>Member since</th></tr></thead><tbody>';
+    rows.forEach(m=>{ html += '<tr><td class="name"><span class="dot" style="background:'+COLORS[m.color]+'"></span>'+m.first+' '+m.last+'</td><td>'+m.type+'</td><td>'+m.renewal+'</td><td>'+m.since+'</td></tr>'; });
+    html += '</tbody></table>';
+  }
+  panel.innerHTML = html; panel.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+function unlock(){ document.getElementById('gate').classList.add('hidden'); document.getElementById('app').classList.remove('hidden'); buildDashboard(); }
+
+function tryEnter(){
+  const v = (document.getElementById('pw').value || '').trim();
+  if(v === PASSWORD){ try{ sessionStorage.setItem('gnmh','1'); }catch(e){} unlock(); }
+  else { document.getElementById('err').textContent = 'Incorrect password. Try again.'; document.getElementById('pw').value=''; document.getElementById('pw').focus(); }
+}
+
+document.getElementById('enter').addEventListener('click', tryEnter);
+document.getElementById('pw').addEventListener('keydown', e=>{ if(e.key==='Enter') tryEnter(); });
+try{ if(sessionStorage.getItem('gnmh')==='1') unlock(); else document.getElementById('pw').focus(); }catch(e){ document.getElementById('pw').focus(); }
+</script>
+</body>
+</html>
